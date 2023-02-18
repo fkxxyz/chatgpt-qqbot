@@ -2,13 +2,18 @@ import * as yargs from 'yargs';
 import * as fs from 'fs';
 import {App} from "./app";
 
+interface Argv {
+    config: string,
+}
+
 let argv = yargs.option('config', {
     alias: 'c',
     describe: 'Path to configuration file',
     demandOption: true,
     type: 'string',
     default: './.test.config.json',
-}).argv;
+}).argv as Argv;
+
 
 let configPath = argv.config
 let config

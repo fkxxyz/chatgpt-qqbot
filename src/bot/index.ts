@@ -5,6 +5,7 @@ import * as oicq from 'oicq-icalingua-plus-plus';
 需要实现：
 - 监听所有所需的 QQ 事件，进行对应的处理
 - oicq 断线自动登录
+- 暴露自己的数据库接口
 */
 
 export class Bot {
@@ -24,11 +25,57 @@ export class Bot {
         this.client.on("system.offline.frozen", this.on_system_offline_frozen)
         this.client.on("system.offline.unknown", this.on_system_offline_unknown)
 
+        this.client.on("request.friend.add", this.on_request_friend_add)
+
+        this.client.on("notice.friend.increase", this.on_notice_friend_increase)
+
         this.client.on("message.private.friend", this.message_private_friend)
     }
 
     public login(password: string) {
         this.client.login(password)
+    }
+
+    public async delete_friend(user_id: number) {
+        let ret = await this.client.deleteFriend(user_id, false)
+        if (ret.retcode != 0) {
+            if (ret.retcode == 1) {
+                return Promise.reject(ret.status)
+            }
+            return Promise.reject(ret.error)
+        }
+        return ret.data
+    }
+
+    public async get_requests_friend_add() {
+        let ret = await this.client.getSystemMsg()
+        if (ret.retcode != 0) {
+            if (ret.retcode == 1) {
+                return Promise.reject(ret.status)
+            }
+            return Promise.reject(ret.error)
+        }
+        let requests: Array<oicq.FriendAddEventData> = []
+        for (let i = 0; i < ret.data.length; i++) {
+            if (ret.data[i].request_type != "friend")
+                continue
+            if (ret.data[i].sub_type != "add")
+                continue
+
+            requests.push(ret.data[i] as oicq.FriendAddEventData)
+        }
+        return requests
+    }
+
+    public async set_requests_friend_add(flag: string, approve: boolean, remark: string, block: boolean) {
+        let ret = await this.client.setFriendAddRequest(flag, approve, remark, block)
+        if (ret.retcode != 0) {
+            if (ret.retcode == 1) {
+                return Promise.reject(ret.status)
+            }
+            return Promise.reject(ret.error)
+        }
+        return ret.data
     }
 
     private on_system_login_slider(data: oicq.SliderEventData) {
@@ -91,5 +138,13 @@ export class Bot {
             console.log(`发送消息失败`)
             console.log(err)
         })
+    }
+
+    private on_request_friend_add(data: oicq.FriendAddEventData) {
+        console.log(`收到好友请求： ${data.nickname} (${data.user_id})`)
+    }
+
+    private on_notice_friend_increase(data: oicq.FriendIncreaseEventData) {
+        console.log(`已添加好友： ${data.nickname} (${data.user_id})`)
     }
 }

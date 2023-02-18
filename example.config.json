@@ -1,10 +1,14 @@
 {
   "oicq": {
     "data": "./data",
-    "account": "",
+    "account": 10000,
     "password": ""
   },
   "app": {
+    "manager": {
+      "host": "127.0.0.1",
+      "port": 5225
+    },
     "chatgpt": "",
     "database": ""
   }
