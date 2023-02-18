@@ -1,0 +1,11 @@
+{
+  "oicq": {
+    "data": "./data",
+    "account": "",
+    "password": ""
+  },
+  "app": {
+    "chatgpt": "",
+    "database": ""
+  }
+}

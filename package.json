@@ -1,0 +1,22 @@
+{
+  "name": "chatgpt-qqbot",
+  "version": "1.0.0",
+  "description": "让chatgpt在QQ上使用",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsc && node .",
+    "build": "tsc",
+    "dist": "node ."
+  },
+  "dependencies": {
+    "axios": "^1.3.3",
+    "oicq-icalingua-plus-plus": "^1.23.19",
+    "yargs": "^17.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.0",
+    "typescript": "^4.9.5"
+  },
+  "author": "fkxxyz@gmail.com",
+  "license": "ISC"
+}

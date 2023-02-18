@@ -1,0 +1,6 @@
+/.test.*
+/data/
+/database/
+/dist/
+/.idea/
+/node_modules/
