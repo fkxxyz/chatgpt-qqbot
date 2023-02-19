@@ -12,7 +12,7 @@ interface FriendMessageIndexLoaded {
 }
 
 class FriendData {
-    private database: Database;
+    private readonly database: Database;
 
     constructor(path: string) {
         this.database = new Database(path)

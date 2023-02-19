@@ -2,6 +2,7 @@ import * as oicq from 'oicq-icalingua-plus-plus';
 import {Config} from "./config";
 import {Bot} from "./bot"
 import {Manager} from "./manager";
+import {Database} from "./database";
 
 // App 是该项目的入口
 
@@ -25,7 +26,8 @@ export class App {
             ignore_self: false,
             brief: true,
         })
-        const bot = new Bot(client)
+        const database = new Database(this.config.app.database)
+        const bot = new Bot(client, database, this.config.app.master)
         bot.login(this.config.oicq.password)
         return bot
     }

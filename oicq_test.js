@@ -41,3 +41,101 @@ client.on("system.login.qrcode", on_system_login_qrcode)
 client.on("system.login.error", on_system_login_error)
 client.on("message.private.friend", message_private_friend)
 client.login(config.oicq.password)
+
+const {getC2CMsgs} = require("oicq-icalingua-plus-plus/lib/message/history");
+const {parseC2CMsg} = require("oicq-icalingua-plus-plus/lib/message/parser");
+const {parseC2CMessageId} = require("oicq-icalingua-plus-plus/lib/common");
+
+
+async function get_c2c_messages(user_id, time = 1000000000000, count = 20) {
+    const msgs = await getC2CMsgs.call(client, user_id, time, count)
+    let result = []
+    for (let i = 0; i < msgs.length; i++) {
+        result.push(await parseC2CMsg.call(client, msgs[i]))
+    }
+    return result
+}
+
+function IdLessEqualThen(id1, id2) {
+    return id1.time === id2.time ? id1.seq <= id2.seq : id1.time <= id2.time
+}
+
+function IdSub(id1, id2) {
+    return id1.time === id2.time ? id1.seq - id2.seq : id1.time - id2.time
+}
+
+async function get_c2c_unread_messages(user_id, message_id) {
+    const target_msg_info = parseC2CMessageId(message_id)
+
+    // 确保获取到足够多的冗余的历史记录
+    let current_time = 1000000000000
+    const history = []
+    while (current_time >= target_msg_info.time) {
+        const msgs = await this.get_c2c_messages(user_id, current_time, 20)
+        history.push(msgs)
+        if (msgs.length < 20)
+            break
+        if (current_time === msgs[0].time) // 相等说明这1秒之内超过了20条消息，超过的部分无法获取
+            current_time = msgs[0].time - 1
+        else
+            current_time = msgs[0].time
+    }
+
+    // 去重合并
+    let history_ = []
+    let i
+    for (i = history.length - 1; i >= 0; i--)
+        if (history[i].length !== 0)
+            break
+    if (i >= 0) {
+        history_.push(...history[i])
+        let time_remove = history[i][history[0].length - 1].time
+        for (; i >= 0; i--) {
+            let j
+            for (j = 0; j < history[i].length; j++)
+                if (history[i][j].time > time_remove)
+                    break
+            history_.push(...history[i].slice(j))
+            time_remove = history[i][history[i].length - 1].time
+        }
+    }
+
+    // 排序
+    for (let i = 0; i < history_.length; i++) {
+        history_[i].id_info = parseC2CMessageId(history_[i].message_id)
+    }
+    history_.sort((m1, m2) =>
+        IdSub(m1.id_info, m2.id_info) // 按序号排序
+    )
+
+    // 去掉无效的
+    let result = []
+    for (let i = 0; i < history_.length; i++) {
+        const msg = history_[i]
+        if (IdLessEqualThen(msg.id_info, target_msg_info))
+            continue
+        if (msg.user_id !== user_id)
+            continue
+        result.push(msg)
+    }
+    return result
+}
+
+function format_msg(msg) {
+    return {
+        time: msg.time,
+        seq: parseC2CMessageId(msg.message_id).seq,
+        user_id: msg.user_id,
+        message: msg.raw_message,
+    }
+}
+
+function format_msg_i(msg) {
+    return {
+        time: msg.time,
+        seq: parseC2CMessageId(msg.message_id).seq,
+        user_id: msg.user_id,
+        message: msg.raw_message,
+        id: msg.message_id,
+    }
+}

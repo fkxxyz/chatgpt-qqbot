@@ -1,14 +1,13 @@
 import axios, {AxiosInstance} from "axios";
 
-// ChatGPT 是 ChatGPT 的 api
+// ChatGPT 是 ChatGPT 的 api，直接是简单地 http 调用
 
-export class ChatGPT {
+export class Api {
     private api: AxiosInstance;
 
     constructor(url: string) {
         this.api = axios.create({
-            url: url,
-            baseURL: "/api",
+            baseURL: url + "/api",
             timeout: 30000,
         });
     }
@@ -38,7 +37,7 @@ export class ChatGPT {
         })
     }
 
-    send(id: string, mid: string, msg: string) {
+    send(msg: string, id: string = "", mid: string = "") {
         return this.api.post("send", msg, {
             params: {
                 id: id,

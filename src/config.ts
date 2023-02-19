@@ -5,6 +5,7 @@ export interface Config {
         password: string,
     },
     app: {
+        master: number,
         manager: {
             host: string,
             port: number,
