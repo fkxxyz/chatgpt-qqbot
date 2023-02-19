@@ -25,7 +25,17 @@ export class Manager {
             return
         }
         let user_id = parseInt(req.query.user_id as string)
-        res.json(await this._i.master.delete_friend(user_id))
+        if (isNaN(user_id)) {
+            res.status(400).send("bad user_id query: " + req.query.user_id)
+            return
+        }
+        try {
+            await this._i.master.delete_friend(user_id)
+        } catch (err) {
+            res.status(500).send("delete_friend failed: " + err.message)
+            return
+        }
+        res.json()
     }
 
     private handle_ping(
@@ -39,7 +49,13 @@ export class Manager {
         req: Request<{}, any, any, qs.ParsedQs, Record<string, any>>,
         res: Response<any, Record<string, any>, number>,
     ) {
-        let reqsFriend = await this._i.master.get_friend_add_requests()
+        let reqsFriend
+        try {
+            reqsFriend = await this._i.master.get_friend_add_requests()
+        } catch (err) {
+            res.status(500).send("get_friend_add_requests failed: " + err.message)
+            return
+        }
         res.json(reqsFriend)
     }
 }

@@ -42,11 +42,11 @@ export class BotMessage {
 
     constructor(client: oicq.Client, io: BotIO) {
         this.client = client
-        io.o.send_friend_message = this.output_send_friend_message
-        io.o.get_history = this.output_get_history
+        io.o.send_friend_message = this.output_send_friend_message.bind(this)
+        io.o.get_history = this.output_get_history.bind(this)
         this._io = io
 
-        this.client.on("message.private.friend", this.on_message_private_friend)
+        this.client.on("message.private.friend", this.on_message_private_friend.bind(this))
     }
 
     private async output_send_friend_message(user_id: number, msg: MessageContent) {

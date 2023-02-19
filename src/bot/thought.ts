@@ -84,12 +84,12 @@ export class BotThought {
         this.database = database
         this.master = master
 
-        io.i.receive_friend_message = this.on_receive_friend_message
-        io.i.receive_friend_add = this.on_receive_friend_add
+        io.i.receive_friend_message = this.on_receive_friend_message.bind(this)
+        io.i.receive_friend_add = this.on_receive_friend_add.bind(this)
         io.i.master = {
-            approve_friend_add: this.on_master_approve_friend_add,
-            delete_friend: this.on_master_delete_friend,
-            get_friend_add_requests: this.on_master_get_friend_add_requests,
+            approve_friend_add: this.on_master_approve_friend_add.bind(this),
+            delete_friend: this.on_master_delete_friend.bind(this),
+            get_friend_add_requests: this.on_master_get_friend_add_requests.bind(this),
         }
 
         this._io = io

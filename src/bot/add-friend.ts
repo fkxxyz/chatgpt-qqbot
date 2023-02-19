@@ -7,15 +7,15 @@ export class BotAddFriend {
     constructor(client: oicq.Client, io: BotIO) {
         this.client = client
 
-        io.o.approve_friend_add = this.output_approve_friend_add
-        io.o.get_friend_add_requests = this.output_get_friend_add_requests
-        io.o.delete_friend = this.delete_friend
+        io.o.approve_friend_add = this.output_approve_friend_add.bind(this)
+        io.o.get_friend_add_requests = this.output_get_friend_add_requests.bind(this)
+        io.o.delete_friend = this.delete_friend.bind(this)
 
         this._io = io
 
-        this.client.on("request.friend.add", this.on_request_friend_add)
+        this.client.on("request.friend.add", this.on_request_friend_add.bind(this))
 
-        this.client.on("notice.friend.increase", this.on_notice_friend_increase)
+        this.client.on("notice.friend.increase", this.on_notice_friend_increase.bind(this))
     }
 
     private async output_get_friend_add_requests() {

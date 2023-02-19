@@ -32,19 +32,20 @@ export class BotLogin {
     constructor(client: oicq.Client) {
         client.config.resend = false
         client.config.reconn_interval = 0
+        client.config.auto_server = false
         this.client = client
         this.loaded_session = false
 
-        this.client.on("system.login.slider", this.on_system_login_slider)
-        this.client.on("system.login.device", this.on_system_login_device)
-        this.client.on("system.login.qrcode", this.on_system_login_qrcode)
-        this.client.on("system.login.error", this.on_system_login_error)
+        this.client.on("system.login.slider", this.on_system_login_slider.bind(this))
+        this.client.on("system.login.device", this.on_system_login_device.bind(this))
+        this.client.on("system.login.qrcode", this.on_system_login_qrcode.bind(this))
+        this.client.on("system.login.error", this.on_system_login_error.bind(this))
 
         this.client.on("system.online", this.on_system_online.bind(this))
-        this.client.on("system.offline.network", this.on_system_offline_network)
-        this.client.on("system.offline.kickoff", this.on_system_offline_kickoff)
-        this.client.on("system.offline.frozen", this.on_system_offline_frozen)
-        this.client.on("system.offline.unknown", this.on_system_offline_unknown)
+        this.client.on("system.offline.network", this.on_system_offline_network.bind(this))
+        this.client.on("system.offline.kickoff", this.on_system_offline_kickoff.bind(this))
+        this.client.on("system.offline.frozen", this.on_system_offline_frozen.bind(this))
+        this.client.on("system.offline.unknown", this.on_system_offline_unknown.bind(this))
     }
 
     public login(password: string) {
