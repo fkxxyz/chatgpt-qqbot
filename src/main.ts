@@ -4,6 +4,7 @@ import {App} from "./app";
 
 interface Argv {
     config: string,
+    sessionOnly: boolean,
 }
 
 let argv = yargs.option('config', {
@@ -12,6 +13,11 @@ let argv = yargs.option('config', {
     demandOption: true,
     type: 'string',
     default: './.test.config.json',
+}).option('session-only', {
+    alias: 's',
+    describe: 'create session only, no run app',
+    type: 'boolean',
+    default: false,
 }).argv as Argv;
 
 
@@ -25,4 +31,8 @@ try {
 }
 
 const app = new App(config)
-app.main()
+if (argv.sessionOnly) {
+    app.session_only()
+} else {
+    app.main()
+}

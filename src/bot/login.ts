@@ -28,6 +28,7 @@ async function runCommand(command, args): Promise<string> {
 export class BotLogin {
     private readonly client: oicq.Client;
     private loaded_session: boolean;
+    private exit: boolean;
 
     constructor(client: oicq.Client) {
         client.config.resend = false
@@ -48,7 +49,8 @@ export class BotLogin {
         this.client.on("system.offline.unknown", this.on_system_offline_unknown.bind(this))
     }
 
-    public login(password: string) {
+    public login(password: string, exit: boolean = false) {
+        this.exit = exit
         this.client.login(password)
     }
 
@@ -177,6 +179,8 @@ export class BotLogin {
         console.log(`上线`)
         if (!this.loaded_session)
             this.save_session()
+        if (this.exit)
+            process.exit(0)
     }
 
     private on_system_offline_network(data: oicq.OfflineEventData) {

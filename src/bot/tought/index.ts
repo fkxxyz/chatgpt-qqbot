@@ -223,6 +223,8 @@ export class BotThought {
     private send_to_master(msg: string) {
         this._io.o.qq.send_friend_message(this.master, {
             content: msg,
-        }).then().catch()
+        }).then().catch(err => {
+            console.error(err)
+        })
     }
 }

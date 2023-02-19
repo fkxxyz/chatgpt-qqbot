@@ -5,6 +5,7 @@ import {Manager} from "./manager";
 import {Database} from "./database";
 import {Chatgpt} from "./chatgpt";
 import {BotAction, BotIO, BotSensor} from "./bot/tought/io";
+import {BotLogin} from "./bot/login";
 
 // App 是该项目的入口
 
@@ -30,6 +31,17 @@ export class App {
         this.run_mgr(io)
     }
 
+    public session_only() {
+        const client = oicq.createClient(this.config.oicq.account, {
+            platform: 4,
+            data_dir: this.config.oicq.data,
+            ignore_self: false,
+            brief: true,
+        })
+        const bot_login = new BotLogin(client)
+        bot_login.login(this.config.oicq.password, true)
+    }
+
     // 该函数启动 chatgpt 服务
     private run_chatgpt(io: BotIO): Chatgpt {
         const chatgpt = new Chatgpt(this.config.app.chatgpt)
@@ -51,7 +63,6 @@ export class App {
         const database = new Database(this.config.app.database)
         const bot = new Bot(client, io, database, this.config.app.master)
         bot.login_with_session()
-        // bot.login(this.config.oicq.password)
         return bot
     }
 
