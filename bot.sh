@@ -25,12 +25,24 @@ cmd_delete() {
   jq -r '.' <<< "$json_str"
 }
 
+cmd_approve() {
+  local user_id="$1"
+  local json_str exit_code=0
+  json_str="$(curl --fail-with-body -s -X POST "$BASE_URL/api/approve?user_id=${user_id}")" || exit_code="$?"
+  if [ "$exit_code" != "0" ]; then
+    echo "$json_str"
+    return "$exit_code"
+  fi
+  jq -r '.' <<< "$json_str"
+}
+
 cmd_help(){
   printf 'Usage: %s COMMAND
 
 Commands:
   requests
   delete <user_id>
+  approve <user_id>
 
   help
 ' "$0"

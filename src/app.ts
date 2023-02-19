@@ -3,6 +3,8 @@ import {Config} from "./config";
 import {Bot} from "./bot"
 import {Manager} from "./manager";
 import {Database} from "./database";
+import {Chatgpt} from "./chatgpt";
+import {BotAction, BotIO, BotSensor} from "./bot/tought/io";
 
 // App 是该项目的入口
 
@@ -15,11 +17,27 @@ export class App {
 
     public main() {
         const io = {
-            i: {} as BotSensor,
-            o: {} as BotAction,
+            i: {
+                master: {},
+            } as BotSensor,
+            o: {
+                qq: {},
+                chatgpt: {},
+            } as BotAction,
         }
+        this.run_chatgpt(io)
         this.run_qq_bot(io)
         this.run_mgr(io)
+    }
+
+    // 该函数启动 chatgpt 服务
+    private run_chatgpt(io: BotIO): Chatgpt {
+        const chatgpt = new Chatgpt(this.config.app.chatgpt)
+        io.o.chatgpt.get = chatgpt.get_message.bind(chatgpt)
+        io.o.chatgpt.send = chatgpt.send_message.bind(chatgpt)
+        io.o.chatgpt.new_conv = chatgpt.new_conversation.bind(chatgpt)
+        io.o.chatgpt.title = chatgpt.set_title.bind(chatgpt)
+        return chatgpt
     }
 
     // 该函数启动QQ机器人

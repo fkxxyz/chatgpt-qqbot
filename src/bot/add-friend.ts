@@ -1,4 +1,5 @@
 import * as oicq from "oicq-icalingua-plus-plus";
+import {AddFriendRequestInfo, BotIO} from "./tought/io";
 
 export class BotAddFriend {
     private readonly client: oicq.Client;
@@ -7,9 +8,9 @@ export class BotAddFriend {
     constructor(client: oicq.Client, io: BotIO) {
         this.client = client
 
-        io.o.approve_friend_add = this.output_approve_friend_add.bind(this)
-        io.o.get_friend_add_requests = this.output_get_friend_add_requests.bind(this)
-        io.o.delete_friend = this.delete_friend.bind(this)
+        io.o.qq.approve_friend_add = this.output_approve_friend_add.bind(this)
+        io.o.qq.get_friend_add_requests = this.output_get_friend_add_requests.bind(this)
+        io.o.qq.delete_friend = this.delete_friend.bind(this)
 
         this._io = io
 
@@ -136,5 +137,11 @@ export class BotAddFriend {
 
     private on_notice_friend_increase(data: oicq.FriendIncreaseEventData) {
         console.log(`已添加好友： ${data.nickname} (${data.user_id})`)
+        this._io.i.friend_added({
+            age: 0,
+            nickname: data.nickname,
+            sex: "",
+            user_id: data.user_id
+        })
     }
 }

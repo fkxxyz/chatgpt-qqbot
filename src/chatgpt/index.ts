@@ -9,6 +9,13 @@ const status_sleep_map = {
     503: 10000,
 }
 
+export interface ReplyMsgInfo {
+    id: string,
+    mid: string,
+    msg: string,
+    end: boolean
+}
+
 export class Chatgpt {
     private readonly api: Api;
     private blocked_count: number;
@@ -19,15 +26,23 @@ export class Chatgpt {
     }
 
     public async new_conversation(msg: string): Promise<string> {
-        return this.try_request(async () => this.api.send(msg))
+        const ret = await this.try_request(async () => this.api.send(msg))
+        return ret.mid
     }
 
-    public async get_message(mid: string) {
-        return this.try_request(async () => this.api.get(mid))
+    public async get_message(mid: string): Promise<ReplyMsgInfo> {
+        const ret = await this.try_request(async () => this.api.get(mid))
+        return {
+            id: ret.conversation_id as string,
+            mid: ret.message.id as string,
+            msg: ret.message.content.parts[0] as string,
+            end: ret.finished as boolean,
+        }
     }
 
     public async send_message(msg: string, id: string, mid: string): Promise<string> {
-        return this.try_request(async () => this.api.send(msg, id, mid))
+        const ret = await this.try_request(async () => this.api.send(msg, id, mid))
+        return ret.mid
     }
 
     public async set_title(id: string, title: string) {

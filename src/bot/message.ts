@@ -1,4 +1,5 @@
 import * as oicq from "oicq-icalingua-plus-plus";
+import {BotIO, MessageContent, MessageInfo} from "./tought/io";
 
 const {getC2CMsgs} = require("oicq-icalingua-plus-plus/lib/message/history");
 const {parseC2CMsg} = require("oicq-icalingua-plus-plus/lib/message/parser");
@@ -42,9 +43,10 @@ export class BotMessage {
 
     constructor(client: oicq.Client, io: BotIO) {
         this.client = client
-        io.o.send_friend_message = this.output_send_friend_message.bind(this)
-        io.o.get_history = this.output_get_history.bind(this)
+        io.o.qq.send_friend_message = this.output_send_friend_message.bind(this)
+        io.o.qq.get_history = this.output_get_history.bind(this)
         this._io = io
+        this.unread_messages = {}
 
         this.client.on("message.private.friend", this.on_message_private_friend.bind(this))
     }
@@ -82,6 +84,8 @@ export class BotMessage {
     private on_message_private_friend(data: oicq.PrivateMessageEventData) {
         let data_ = data as PrivateMessageEventDataSeq
         data_.id_info = parseC2CMessageIdInfo(data.message_id)
+        if (this.unread_messages[data.user_id] === undefined)
+            this.unread_messages[data.user_id] = []
         this.unread_messages[data.user_id].push(data_)
         this._io.i.receive_friend_message(data.user_id, {
             id: data.message_id,

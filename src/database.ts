@@ -8,6 +8,7 @@ export class Database {
     private readonly root: string;
 
     constructor(root: string) {
+        fs.mkdirSync(root, {recursive: true})
         this.root = root
     }
 

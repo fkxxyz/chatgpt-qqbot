@@ -1,9 +1,10 @@
 import * as oicq from 'oicq-icalingua-plus-plus';
-import {BotThought} from "./thought";
+import {BotThought} from "./tought";
 import {BotLogin} from "./login";
 import {BotAddFriend} from "./add-friend";
 import {BotMessage} from "./message";
 import {Database} from "../database";
+import {BotIO} from "./tought/io";
 
 // Bot 是机器人
 /*
@@ -22,7 +23,7 @@ export class Bot {
 
     constructor(client: oicq.Client, io: BotIO, database: Database, master: number) {
         this.client = client
-        io.o.get_self = () => {
+        io.o.qq.get_self = () => {
             return {
                 user_id: this.client.uin,
                 nickname: this.client.nickname,
