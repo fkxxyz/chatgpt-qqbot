@@ -1,5 +1,4 @@
 import * as oicq from "oicq-icalingua-plus-plus";
-import {BotThought} from "./thought";
 
 const {getC2CMsgs} = require("oicq-icalingua-plus-plus/lib/message/history");
 const {parseC2CMsg} = require("oicq-icalingua-plus-plus/lib/message/parser");
@@ -38,16 +37,38 @@ const big_seq = 1000000000000;
 
 export class BotMessage {
     private readonly client: oicq.Client;
-    private readonly _thought: BotThought;
+    private readonly _io: BotIO;
     private unread_messages: { [key: number]: Array<PrivateMessageEventDataSeq> };
 
-    constructor(client: oicq.Client, thought: BotThought) {
+    constructor(client: oicq.Client, io: BotIO) {
         this.client = client
+        io.o.send_friend_message = this.output_send_friend_message
+        io.o.get_history = this.output_get_history
+        this._io = io
 
-        this.client.on("message.private.friend", this.message_private_friend)
+        this.client.on("message.private.friend", this.on_message_private_friend)
     }
 
-    public async send_message(user_id: number, msg: string, auto_escape: false) {
+    private async output_send_friend_message(user_id: number, msg: MessageContent) {
+        let ret = await this.send_friend_message(user_id, msg.content, false)
+        return ret.message_id
+    }
+
+    private async output_get_history(user_id: number, message_id: string) {
+        let unread_msgs = await this.get_c2c_unread_messages(user_id, message_id)
+        let result: Array<MessageInfo> = []
+        for (let i = 0; i < unread_msgs.length; i++)
+            result.push({
+                id: unread_msgs[i].message_id,
+                time: unread_msgs[i].time,
+                content: {
+                    content: unread_msgs[i].raw_message,
+                },
+            })
+        return result
+    }
+
+    private async send_friend_message(user_id: number, msg: string, auto_escape: boolean = false) {
         let ret = await this.client.sendPrivateMsg(user_id, msg, auto_escape);
         if (ret.retcode != 0) {
             if (ret.retcode == 1) {
@@ -58,11 +79,17 @@ export class BotMessage {
         return ret.data
     }
 
-    private message_private_friend(data: oicq.PrivateMessageEventData) {
+    private on_message_private_friend(data: oicq.PrivateMessageEventData) {
         let data_ = data as PrivateMessageEventDataSeq
         data_.id_info = parseC2CMessageIdInfo(data.message_id)
         this.unread_messages[data.user_id].push(data_)
-        // TODO 提交回复需求
+        this._io.i.receive_friend_message(data.user_id, {
+            id: data.message_id,
+            time: data.time,
+            content: {
+                content: data.raw_message,
+            },
+        })
     }
 
     private async get_c2c_messages(user_id: number, time: number, count: number = 20): Promise<Array<oicq.PrivateMessageEventData>> {

@@ -15,38 +15,31 @@ import {Database} from "../database";
 
 export class Bot {
     private readonly client: oicq.Client;
-    private readonly master: number;
     private readonly _thought: BotThought;
     private readonly _login: BotLogin;
     private readonly _add_friend: BotAddFriend;
     private readonly _message: BotMessage;
 
-    constructor(client: oicq.Client, database: Database, master: number) {
+    constructor(client: oicq.Client, io: BotIO, database: Database, master: number) {
         this.client = client
-        this.master = master
-        this._thought = new BotThought(database, this.report_to_master)
+        io.o.get_self = () => {
+            return {
+                user_id: this.client.uin,
+                nickname: this.client.nickname,
+                age: this.client.age,
+            }
+        }
+        this._thought = new BotThought(database, master, io)
         this._login = new BotLogin(client)
-        this._add_friend = new BotAddFriend(client, this._thought)
-        this._message = new BotMessage(client, this._thought)
+        this._add_friend = new BotAddFriend(client, io)
+        this._message = new BotMessage(client, io)
     }
 
     public login(password: string) {
         this._login.login(password)
     }
 
-    public async delete_friend(user_id: number) {
-        return this._add_friend.delete_friend(user_id)
-    }
-
-    public async get_requests_friend_add() {
-        return this._add_friend.get_requests_friend_add()
-    }
-
-    public async set_requests_friend_add(flag: string, approve: boolean, remark: string, block: boolean) {
-        return this._add_friend.set_requests_friend_add(flag, approve, remark, block)
-    }
-
-    private async report_to_master(msg: string) {
-
+    public login_with_session() {
+        this._login.login_with_session()
     }
 }

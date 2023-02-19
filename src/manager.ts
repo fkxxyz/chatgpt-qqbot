@@ -1,14 +1,13 @@
 import * as express from 'express';
 import {Request, Response} from "express-serve-static-core";
-import {Bot} from "./bot";
 
 // Manager 提供http接口，是后台管理服务，用于管理机器人行为和数据
 
 export class Manager {
-    private bot: Bot;
+    private _i: BotSensor;
 
-    constructor(host: string, port: number, bot: Bot) {
-        this.bot = bot
+    constructor(host: string, port: number, sensor: BotSensor) {
+        this._i = sensor
         let app = express()
         app.get("/api/ping", this.handle_ping)
         app.get("/api/requests", this.handle_get_requests_friend_add.bind(this))
@@ -26,7 +25,7 @@ export class Manager {
             return
         }
         let user_id = parseInt(req.query.user_id as string)
-        res.send(await this.bot.delete_friend(user_id))
+        res.json(await this._i.master.delete_friend(user_id))
     }
 
     private handle_ping(
@@ -40,17 +39,7 @@ export class Manager {
         req: Request<{}, any, any, qs.ParsedQs, Record<string, any>>,
         res: Response<any, Record<string, any>, number>,
     ) {
-        let reqsOicq = await this.bot.get_requests_friend_add()
-        let reqs = []
-        for (let i = 0; i < reqsOicq.length; i++) {
-            reqs.push({
-                id: reqsOicq[i].flag,
-                comment: reqsOicq[i].comment, //附加信息
-                source: reqsOicq[i].source, //来源(如"条件查找")
-                age: reqsOicq[i].age,
-                sex: reqsOicq[i].sex as string,
-            })
-        }
-        res.json(reqs)
+        let reqsFriend = await this._i.master.get_friend_add_requests()
+        res.json(reqsFriend)
     }
 }

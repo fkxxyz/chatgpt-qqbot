@@ -1,19 +1,5 @@
 import {Database} from "../database";
 
-interface SelfInfo {
-    user_id: number,
-    nickname: string,
-    age: number,
-}
-
-interface FriendInfo {
-    user_id: number,
-    nickname: string,
-    age: number,
-    sex: string,
-    comment: string, //附加信息
-    source: string, //来源(如"条件查找")
-}
 
 class Queue<T> {
     private readonly items: T[];
@@ -90,20 +76,43 @@ class RequestQueue {
 
 export class BotThought {
     private readonly database: Database;
-    private readonly report_fn: (msg: string) => Promise<void>;
+    private readonly master: number;
+    private readonly _io: BotIO;
     private request_queue: RequestQueue;
 
-    constructor(database: Database, report_fn: (msg: string) => Promise<void>) {
+    constructor(database: Database, master: number, io: BotIO) {
         this.database = database
-        this.report_fn = report_fn
+        this.master = master
+
+        io.i.receive_friend_message = this.on_receive_friend_message
+        io.i.receive_friend_add = this.on_receive_friend_add
+        io.i.master = {
+            approve_friend_add: this.on_master_approve_friend_add,
+            delete_friend: this.on_master_delete_friend,
+            get_friend_add_requests: this.on_master_get_friend_add_requests,
+        }
+
+        this._io = io
         this.request_queue = new RequestQueue()
     }
 
-    public before_add_friend(self_info: SelfInfo, friend_info: FriendInfo) {
+    private on_master_approve_friend_add(user_id: number): Promise<null> {
+        return this._io.o.approve_friend_add(user_id)
+    }
+
+    private async on_master_delete_friend(user_id: number) {
+        return this._io.o.delete_friend(user_id)
+    }
+
+    private async on_master_get_friend_add_requests(): Promise<Array<AddFriendRequestInfo>> {
+        return this._io.o.get_friend_add_requests()
+    }
+
+    private on_receive_friend_message(user_id: number, msg: MessageInfo) {
 
     }
 
-    public message_received() {
+    private on_receive_friend_add(friend_info: AddFriendRequestInfo) {
 
     }
 }

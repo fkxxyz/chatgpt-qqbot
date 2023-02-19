@@ -1,4 +1,5 @@
 const fs = require('fs')
+const {spawn} = require('child_process');
 const oicq = require('oicq-icalingua-plus-plus')
 const configPath = './.test.config.json'
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -9,14 +10,36 @@ const client = oicq.createClient(config.oicq.account, {
     brief: true,
 })
 
+async function runCommand(command, args) {
+    const childProcess = spawn(command, args);
+
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        childProcess.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+
+        childProcess.on('exit', (code, signal) => {
+            if (code !== 0) {
+                reject(new Error(`Command failed with exit code ${code}`));
+            } else {
+                resolve(stdout);
+            }
+        });
+    });
+}
+
+
 function on_system_login_slider(data) {
     console.log("需要滑动验证码")
     client.terminate()
 }
 
 function on_system_login_device(data) {
-    console.log("需要锁验证")
-    client.terminate()
+    client.sendSMSCode();
+    runCommand("zenity", ["--entry", "--text=输入密保手机收到的短信验证码"]).then(data => {
+        client.submitSMSCode(data.trim());
+    })
 }
 
 function on_system_login_qrcode(data) {
@@ -27,6 +50,53 @@ function on_system_login_qrcode(data) {
 function on_system_login_error(data) {
     console.log(`登录错误 ${data.code} ： ${data.message}`)
     client.terminate()
+}
+
+function save_session() {
+    let {
+        password_md5,
+        nickname,
+        sex,
+        age,
+        bkn,
+        cookies,
+        sig,
+    } = client
+    let {
+        ecdh,
+        t104,
+        t106,
+        t174,
+        phone,
+        token_flag,
+        session_id,
+        random_key,
+        qrcode_sig,
+    } = client._wt
+    let session_data = {
+        client: {
+            password_md5,
+            bkn,
+            cookies,
+            sig,
+        },
+        wt: {
+            ecdh,
+            t104,
+            t106,
+            t174,
+            phone,
+            token_flag,
+            session_id,
+            random_key,
+            qrcode_sig,
+        }
+    }
+    fs.writeFileSync("session.json", JSON.stringify(session_data), "utf-8")
+}
+
+function on_system_online(data) {
+    save_session()
 }
 
 let msgs = []
@@ -40,11 +110,13 @@ client.on("system.login.device", on_system_login_device)
 client.on("system.login.qrcode", on_system_login_qrcode)
 client.on("system.login.error", on_system_login_error)
 client.on("message.private.friend", message_private_friend)
+client.on("system.online", on_system_online)
 client.login(config.oicq.password)
 
 const {getC2CMsgs} = require("oicq-icalingua-plus-plus/lib/message/history");
 const {parseC2CMsg} = require("oicq-icalingua-plus-plus/lib/message/parser");
 const {parseC2CMessageId} = require("oicq-icalingua-plus-plus/lib/common");
+const {Gender} = require("oicq-icalingua-plus-plus");
 
 
 async function get_c2c_messages(user_id, time = 1000000000000, count = 20) {
