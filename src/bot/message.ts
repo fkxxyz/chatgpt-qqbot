@@ -121,7 +121,7 @@ export class BotMessage {
                     const msg = unread_messages[i]
                     if (msg.message_id == message_id) {
                         const result = this.unread_messages[user_id].slice(i + 1)
-                        this.unread_messages[user_id] = []
+                        this.unread_messages[user_id] = this.unread_messages[user_id].slice(i)
                         return result
                     }
                 }
@@ -153,6 +153,7 @@ export class BotMessage {
         if (i >= 0) {
             history_.push(...history[i])
             let time_remove = history[i][history[0].length - 1].time
+            i--
             for (; i >= 0; i--) {
                 let j
                 for (j = 0; j < history[i].length; j++)

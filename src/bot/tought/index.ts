@@ -171,8 +171,16 @@ export class BotThought {
                     // 获取所有未读消息
                     const history = await this._io.o.qq.get_history(user_id, fmil.message_id)
 
+                    // 刚发的消息，在历史里面可能没有
+                    if (history.length == 0 || history[history.length - 1].id != msg.id)
+                        history.push(msg)
+                    const last_message_id = history[history.length - 1].id
+
+                    // 将消息封装成一条
+                    const chatgpt_msg = make_chatgpt_msg(history)
+
                     // 一次性发送给 ChatGPT 得到回复
-                    const mid = await this._io.o.chatgpt.send(make_chatgpt_msg(history), friend_index.id, fmil.mid)
+                    const mid = await this._io.o.chatgpt.send(chatgpt_msg, friend_index.id, fmil.mid)
                     let msg_info: ReplyMsgInfo
                     while (true) {
                         msg_info = await this._io.o.chatgpt.get(mid)
@@ -186,7 +194,7 @@ export class BotThought {
                         content: msg_info.msg,
                     }).then(message_id => {
                         this.data.save_friend_message_index_loaded(user_id, {
-                            message_id: message_id,
+                            message_id: last_message_id,
                             mid: msg_info.mid,
                         })
                     }).catch(err => {
