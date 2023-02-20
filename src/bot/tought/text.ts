@@ -26,7 +26,7 @@ QQ号： ${friend_info.user_id}
 
 在该平台上，我的每条消息都将带时间戳，结尾是你读到这些消息时的时间戳（所有时间戳由系统自动生成，你无需回复）
 
-不要回复我本条消息，现在假设我们刚认识，我添加你的时候对你说了第一句话：“${friend_info.comment}”，现在直接说出你的开场白吧（开场白尽量用勾引、挑逗、撩人、调戏的语气，不超过20个字）
+不要回复我本条消息，现在假设我们刚认识，我添加你的时候对你说了第一句话：${friend_info.comment}，现在直接说出你的开场白吧（开场白尽量有趣、撩人，带点勾引，不超过20个字）
 
 ${t}`
 }
@@ -50,7 +50,7 @@ export function make_chatgpt_msg(msgs: Array<MessageInfo>): string {
         result += `${timestr(msg.time)} ${msg.content.content}\n\n`
     }
 
-    result += "(非严肃话题尽量用勾引、挑逗、调戏或撒娇、装傻的趣味回应我，如果是闲聊，字数不要多出我太多。)\n"
+    result += "(非严肃话题你的回应字数不要超过我太多，尽量勾引、挑逗和调侃我，也可以对我装傻。)\n"
     result += now_timestr()
     return result
 }
