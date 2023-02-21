@@ -8,7 +8,7 @@ export class BotAddFriend {
     constructor(client: oicq.Client, io: BotIO) {
         this.client = client
 
-        io.o.qq.approve_friend_add = this.output_approve_friend_add.bind(this)
+        io.o.qq.set_friend_add = this.output_set_friend_add.bind(this)
         io.o.qq.get_friend_add_requests = this.output_get_friend_add_requests.bind(this)
         io.o.qq.delete_friend = this.delete_friend.bind(this)
 
@@ -34,7 +34,7 @@ export class BotAddFriend {
         return result
     }
 
-    private async output_approve_friend_add(user_id: number) {
+    private async output_set_friend_add(user_id: number, approve: boolean) {
         // 获取到该QQ号对应的系统消息的 flag
         let ret = await this.client.getSystemMsg()
         if (ret.retcode != 0) {
@@ -59,7 +59,7 @@ export class BotAddFriend {
             return Promise.reject(`no such friend add request: ${user_id}`)
         }
 
-        return this.set_requests_friend_add(flag, true, "", false)
+        return this.set_requests_friend_add(flag, approve, "", false)
     }
 
     // 获取好友申请列表
@@ -124,8 +124,7 @@ export class BotAddFriend {
     }
 
     private on_request_friend_add(data: oicq.FriendAddEventData) {
-        console.log(`收到好友请求： ${data.nickname} (${data.user_id})`)
-        this._io.i.receive_friend_add({
+        this._io.i.qq.receive_friend_add({
             comment: data.comment,
             source: data.source,
             age: data.age,
@@ -136,8 +135,7 @@ export class BotAddFriend {
     }
 
     private on_notice_friend_increase(data: oicq.FriendIncreaseEventData) {
-        console.log(`已添加好友： ${data.nickname} (${data.user_id})`)
-        this._io.i.friend_added({
+        this._io.i.qq.friend_added({
             age: 0,
             nickname: data.nickname,
             sex: "",

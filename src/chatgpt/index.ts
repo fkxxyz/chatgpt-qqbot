@@ -2,10 +2,12 @@
 
 import {Api} from "./api";
 import {isAxiosError} from "axios";
+import * as log4js from "log4js";
 
 const status_sleep_map = {
     409: 60000,
     429: 60000,
+    500: 10000,
     503: 10000,
 }
 
@@ -19,10 +21,12 @@ export interface ReplyMsgInfo {
 export class Chatgpt {
     private readonly api: Api;
     private blocked_count: number;
+    private logger: log4js.Logger;
 
     constructor(url: string) {
         this.api = new Api(url)
         this.blocked_count = 0
+        this.logger = log4js.getLogger("thought");
     }
 
     public async new_conversation(msg: string): Promise<string> {
@@ -59,31 +63,43 @@ export class Chatgpt {
             if (blocked) {
                 this.blocked_count--
                 blocked = false
+                this.logger.error(`阻塞释放一个，阻塞数量： ${this.blocked_count}`)
             }
         }
         while (true) {
-            let wait_ms: any
+            let wait_ms = 10000
             try {
                 const data = await fn()
                 release_block()
                 return data.data
             } catch (err) {
                 if (!isAxiosError(err)) {
+                    this.logger.error(err)
                     release_block()
                     throw err
                 }
                 if (err.response) {
+                    this.logger.error("ChatGPT 服务器返回状态码 ", err.message)
                     wait_ms = status_sleep_map[err.response.status]
                     if (!wait_ms) {
                         release_block()
                         throw err
+                    }
+                } else {
+                    this.logger.error("ChatGPT 服务器连接错误 ", err.message)
+                    if (err.code == "ECONNREFUSED")
+                        wait_ms = 10000
+                    else {
+                        wait_ms = 10000
                     }
                 }
             }
             if (!blocked) {
                 this.blocked_count++
                 blocked = true
+                this.logger.error(`请求进入阻塞状态，阻塞数量： ${this.blocked_count}`)
             }
+            this.logger.error(`等待 ${wait_ms} 秒后重试 ...`)
             await new Promise(resolve => setTimeout(resolve, wait_ms));
         }
     }

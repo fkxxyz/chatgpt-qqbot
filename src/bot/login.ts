@@ -1,6 +1,7 @@
 import * as oicq from "oicq-icalingua-plus-plus";
 import {spawn} from "child_process";
 import * as fs from "fs";
+import {BotIO} from "./tought/io";
 import path = require("node:path");
 import assert = require("node:assert");
 
@@ -29,12 +30,14 @@ export class BotLogin {
     private readonly client: oicq.Client;
     private loaded_session: boolean;
     private exit: boolean;
+    private _io: BotIO;
 
-    constructor(client: oicq.Client) {
+    constructor(client: oicq.Client, io: BotIO) {
         client.config.resend = false
         client.config.reconn_interval = 0
         client.config.auto_server = false
         this.client = client
+        this._io = io
         this.loaded_session = false
 
         this.client.on("system.login.slider", this.on_system_login_slider.bind(this))
@@ -176,15 +179,24 @@ export class BotLogin {
 
 
     private on_system_online(data: oicq.OnlineEventData) {
-        console.log(`上线`)
         if (!this.loaded_session)
             this.save_session()
         if (this.exit)
             process.exit(0)
+        else
+            this._io.i.qq.online()
     }
 
     private on_system_offline_network(data: oicq.OfflineEventData) {
-        console.log(`掉线： ${data.message}`)
+        if (!this.exit)
+            this._io.i.qq.offline()
+
+        setTimeout(() => {
+            const client = this.client as any
+            client._connect(() => {
+                onlineListener.call(this.client).then()
+            })
+        }, 10000)
     }
 
     private on_system_offline_kickoff(data: oicq.OfflineEventData) {

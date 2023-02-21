@@ -3,8 +3,7 @@ import {BotThought} from "./tought";
 import {BotLogin} from "./login";
 import {BotAddFriend} from "./add-friend";
 import {BotMessage} from "./message";
-import {Database} from "../database";
-import {BotIO} from "./tought/io";
+import {BotIO, OnlineStatus} from "./tought/io";
 
 // Bot 是机器人
 /*
@@ -21,7 +20,7 @@ export class Bot {
     private readonly _add_friend: BotAddFriend;
     private readonly _message: BotMessage;
 
-    constructor(client: oicq.Client, io: BotIO, database: Database, master: number) {
+    constructor(client: oicq.Client, thought: BotThought, io: BotIO) {
         this.client = client
         io.o.qq.get_self = () => {
             return {
@@ -30,8 +29,43 @@ export class Bot {
                 age: this.client.age,
             }
         }
-        this._thought = new BotThought(database, master, io)
-        this._login = new BotLogin(client)
+        io.o.qq.get_friend = (user_id) => {
+            const info = this.client.fl.get(user_id)
+            return {
+                user_id: info.user_id,
+                nickname: info.nickname,
+                age: info.age,
+                sex: info.sex as string,
+            }
+        }
+        io.o.qq.get_all_friends = () => {
+            const result = []
+            for (const friend of this.client.fl.values())
+                result.push({
+                    user_id: friend.user_id,
+                    nickname: friend.nickname,
+                    age: friend.age,
+                    sex: friend.sex,
+                })
+            return result
+        }
+        io.o.qq.set_online_status = (status) => {
+            let online_status: number
+            switch (status) {
+                case OnlineStatus.online:
+                    online_status = 60
+                    break
+                case OnlineStatus.busy:
+                    online_status = 50
+                    break
+                case OnlineStatus.leave:
+                    online_status = 31
+                    break
+            }
+            return this.client.setOnlineStatus(online_status)
+        }
+        this._thought = thought
+        this._login = new BotLogin(client, io)
         this._add_friend = new BotAddFriend(client, io)
         this._message = new BotMessage(client, io)
     }

@@ -1,4 +1,4 @@
-import {AddFriendRequestInfo, MessageInfo, SelfInfo} from "./io";
+import {AddFriendRequestInfo, FriendInfo, MessageInfo, SelfInfo} from "./io";
 
 export function receive_add_friend_text(friend_info: AddFriendRequestInfo) {
     return `我收到好友申请
@@ -29,6 +29,10 @@ QQ号： ${friend_info.user_id}
 不要回复我本条消息，现在假设我们刚认识，我添加你的时候对你说了第一句话：${friend_info.comment}，现在直接说出你的开场白吧（开场白尽量有趣、撩人，带点勾引，不超过20个字）
 
 ${t}`
+}
+
+export function friend_text(friend: FriendInfo): string {
+    return `${friend.nickname} (${friend.user_id})`
 }
 
 export function err_to_text(err: any) {

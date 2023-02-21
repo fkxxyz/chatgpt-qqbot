@@ -87,7 +87,7 @@ export class BotMessage {
         if (this.unread_messages[data.user_id] === undefined)
             this.unread_messages[data.user_id] = []
         this.unread_messages[data.user_id].push(data_)
-        this._io.i.receive_friend_message(data.user_id, {
+        this._io.i.qq.receive_friend_message(data.user_id, {
             id: data.message_id,
             time: data.time,
             content: {
