@@ -48,10 +48,12 @@ export class BotThought {
                 this.log_promise("设置在线状态", "忙碌",
                     this._io.o.qq.set_online_status(OnlineStatus.busy)
                 ).then()
+                this.send_to_master("我已进入忙碌")
             } else {
                 this.log_promise("设置在线状态", "在线",
                     this._io.o.qq.set_online_status(OnlineStatus.online)
                 ).then()
+                this.send_to_master("我已恢复空闲")
             }
             this.chatgpt_blocking = is_blocking
         }

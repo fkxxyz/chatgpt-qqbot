@@ -59,6 +59,7 @@ export class Chatgpt {
 
     private async try_request(fn) {
         let blocked = false
+        let isChatGPTError = false
         const release_block = () => {
             if (blocked) {
                 this.blocked_count--
@@ -80,11 +81,17 @@ export class Chatgpt {
                 }
                 if (err.response) {
                     this.logger.error("ChatGPT 服务器返回状态码 ", err.message)
-                    wait_ms = status_sleep_map[err.response.status]
+                    if (isChatGPTError) {
+                        wait_ms *= 2
+                        if (wait_ms > 1200000)
+                            wait_ms = 1200000
+                    } else
+                        wait_ms = status_sleep_map[err.response.status]
                     if (!wait_ms) {
                         release_block()
                         throw err
                     }
+                    isChatGPTError = true
                 } else {
                     this.logger.error("ChatGPT 服务器连接错误 ", err.message)
                     if (err.code == "ECONNREFUSED")
@@ -99,7 +106,7 @@ export class Chatgpt {
                 blocked = true
                 this.logger.error(`请求进入阻塞状态，阻塞数量： ${this.blocked_count}`)
             }
-            this.logger.error(`等待 ${wait_ms} 秒后重试 ...`)
+            this.logger.error(`等待 ${wait_ms} 毫秒后重试 ...`)
             await new Promise(resolve => setTimeout(resolve, wait_ms));
         }
     }
