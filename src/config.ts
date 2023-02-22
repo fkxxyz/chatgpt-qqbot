@@ -5,11 +5,11 @@ export interface Config {
         password: string,
     },
     app: {
-        "log": {
-            "file": string,
-            "level": string,
+        log: {
+            file: string,
+            level: string,
         },
-        master: number,
+        masters: Array<number>,
         manager: {
             host: string,
             port: number,

@@ -76,7 +76,7 @@ export class App {
                 default: {appenders: ["everything"], level: this.config.app.log.level},
             },
         })
-        const thought = new BotThought(database, this.config.app.master, io)
+        const thought = new BotThought(database, this.config.app.masters, io)
         const bot = new Bot(client, thought, io)
         bot.login_with_session()
         return bot

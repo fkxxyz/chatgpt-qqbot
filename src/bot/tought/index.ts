@@ -9,16 +9,16 @@ import {RequestQueue} from "./queue";
 
 export class BotThought {
     private readonly data: FriendData;
-    private readonly master: number;
+    private readonly masters: Array<number>;
     private readonly _io: BotIO;
     private request_queue: RequestQueue;
     private logger: log4js.Logger;
     private chatgpt_blocking: boolean;
 
-    constructor(database: Database, master: number, io: BotIO) {
+    constructor(database: Database, masters: Array<number>, io: BotIO) {
         this.data = new FriendData(database)
         this.logger = log4js.getLogger("thought");
-        this.master = master
+        this.masters = masters
 
         setInterval(this.on_timer.bind(this), 1000)
 
@@ -232,11 +232,13 @@ export class BotThought {
     }
 
     private send_to_master(msg: string) {
-        this._io.o.qq.send_friend_message(this.master, {
-            content: msg,
-        }).then().catch(err => {
-            this.logger.error(err)
-        })
+        for (let i = 0; i < this.masters.length; i++) {
+            this._io.o.qq.send_friend_message(this.masters[i], {
+                content: msg,
+            }).then().catch(err => {
+                this.logger.error(err)
+            })
+        }
     }
 
     private log_promise(action: string, content: string, p: Promise<any>): Promise<any> {

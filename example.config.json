@@ -9,7 +9,9 @@
       "file": "/tmp/bot.log",
       "level": "debug"
     },
-    "master": 10000,
+    "masters": [
+      10000
+    ],
     "manager": {
       "host": "127.0.0.1",
       "port": 5225
