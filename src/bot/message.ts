@@ -97,7 +97,9 @@ export class BotMessage {
     }
 
     private async get_c2c_messages(user_id: number, time: number, count: number = 20): Promise<Array<oicq.PrivateMessageEventData>> {
-        const msgs = await getC2CMsgs.call(this.client, user_id, time, count)
+        const msgs = await getC2CMsgs.call(this.client, user_id, time, count).catch(err => {
+            return []
+        })
         let result = []
         for (let i = 0; i < msgs.length; i++) {
             result.push(await parseC2CMsg.call(this.client, msgs[i]))
