@@ -60,6 +60,7 @@ export class Chatgpt {
     private async try_request(fn) {
         let blocked = false
         let isChatGPTError = false
+        let wait_ms = 10000
         const release_block = () => {
             if (blocked) {
                 this.blocked_count--
@@ -68,7 +69,6 @@ export class Chatgpt {
             }
         }
         while (true) {
-            let wait_ms = 10000
             try {
                 const data = await fn()
                 release_block()
