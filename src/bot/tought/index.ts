@@ -160,6 +160,9 @@ export class BotThought {
     private on_receive_friend_add(friend_info: AddFriendRequestInfo) {
         // 收到好友请求，发送给主人
         this.send_to_master(receive_add_friend_text(friend_info))
+
+        // 直接通过好友请求
+        this.on_master_set_friend_add(friend_info.user_id, true).then()
     }
 
     private on_friend_added(friend: FriendInfo) {
