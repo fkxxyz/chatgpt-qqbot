@@ -49,6 +49,7 @@ export class RequestQueue {
         this.logger.info(`队列新增请求 ${request.id}`)
         this.queue.append(request)
         this.map[request.id] = null
+        this.logger.info(`队列长度： ${this.queue.length()}`)
         this.activate()
     }
 
