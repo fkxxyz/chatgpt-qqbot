@@ -69,13 +69,18 @@ export class RequestQueue {
 
             // 开始处理最头部的请求
             const request = this.queue.head()
+            if (this.map[request.id] === undefined) {
+                this.queue.pop()
+                continue
+            }
+            delete this.map[request.id]
             try {
                 this.logger.info(`队列尝试处理请求 ${request.id}`)
                 await request.process()
                 this.queue.pop()
-                delete this.map[request.id]
             } catch (err) {
                 this.logger.error(`处理队列请求出错 ${request.id}： `, err)
+                this.map[request.id] = null
             }
         }
     }
