@@ -2,6 +2,7 @@ import * as oicq from "oicq-icalingua-plus-plus";
 import {spawn} from "child_process";
 import * as fs from "fs";
 import {BotIO} from "./tought/io";
+import {ipadApkInfo} from "./device";
 import path = require("node:path");
 import assert = require("node:assert");
 
@@ -33,9 +34,7 @@ export class BotLogin {
     private _io: BotIO;
 
     constructor(client: oicq.Client, io: BotIO) {
-        client.config.resend = false
-        client.config.reconn_interval = 0
-        client.config.auto_server = false
+        (client as any).apk = ipadApkInfo
         this.client = client
         this._io = io
         this.loaded_session = false
@@ -153,9 +152,9 @@ export class BotLogin {
     }
 
     private on_system_login_slider(data: oicq.SliderEventData) {
-        console.log("需要滑动验证码")
-        this.client.terminate()
-        process.exit(1)
+        runCommand("zenity", ["--entry", "--text=输入ticket"]).then(s => {
+            this.client.sliderLogin(s.trim());
+        })
     }
 
     private on_system_login_device(data: oicq.DeviceEventData) {
@@ -166,9 +165,10 @@ export class BotLogin {
     }
 
     private on_system_login_qrcode(data: oicq.QrcodeEventData) {
-        console.log("需要二维码验证")
-        this.client.terminate()
-        process.exit(1)
+        //扫码后按回车登录
+        process.stdin.once("data", () => {
+            this.client.login()
+        })
     }
 
     private on_system_login_error(data: oicq.LoginErrorEventData) {

@@ -3,7 +3,8 @@ import {BotThought} from "./tought";
 import {BotLogin} from "./login";
 import {BotAddFriend} from "./add-friend";
 import {BotMessage} from "./message";
-import {BotIO, OnlineStatus} from "./tought/io";
+import {BotIO, OnlineStatus as ioOnlineStatus} from "./tought/io";
+import {OnlineStatus, set_online_status} from "./online_status";
 
 // Bot 是机器人
 /*
@@ -49,20 +50,23 @@ export class Bot {
                 })
             return result
         }
-        io.o.qq.set_online_status = (status) => {
-            let online_status: number
+        io.o.qq.set_online_status = async (status) => {
+            let online_status: OnlineStatus
             switch (status) {
-                case OnlineStatus.online:
-                    online_status = 60
+                case ioOnlineStatus.online:
+                    online_status = OnlineStatus.Online
                     break
-                case OnlineStatus.busy:
-                    online_status = 50
+                case ioOnlineStatus.busy:
+                    online_status = OnlineStatus.Busy
                     break
-                case OnlineStatus.leave:
-                    online_status = 31
+                case ioOnlineStatus.leave:
+                    online_status = OnlineStatus.Away
                     break
             }
-            return this.client.setOnlineStatus(online_status)
+            const ret = await set_online_status.call(this.client, online_status)
+            if (ret.result != 0) {
+                return Promise.reject()
+            }
         }
         this._thought = thought
         this._login = new BotLogin(client, io)

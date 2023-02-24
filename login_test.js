@@ -1,35 +1,16 @@
 const fs = require('fs')
-const {spawn} = require('child_process');
 const oicq = require('oicq-icalingua-plus-plus')
 const configPath = './.test.config.json'
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 const client = oicq.createClient(config.oicq.account, {
-    platform: 4,
+    platform: 5,
     data_dir: config.oicq.data,
     ignore_self: false,
     brief: true,
+    resend: false,
+    reconn_interval: 0,
+    auto_server: false,
 })
-
-
-async function runCommand(command, args) {
-    const childProcess = spawn(command, args);
-
-    return new Promise((resolve, reject) => {
-        let stdout = '';
-        childProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
-        });
-
-        childProcess.on('exit', (code, signal) => {
-            if (code !== 0) {
-                reject(new Error(`Command failed with exit code ${code}`));
-            } else {
-                resolve(stdout);
-            }
-        });
-    });
-}
-
 
 function on_system_login_slider(data) {
     console.log("需要滑动验证码")
@@ -37,10 +18,8 @@ function on_system_login_slider(data) {
 }
 
 function on_system_login_device(data) {
-    client.sendSMSCode();
-    runCommand("zenity", ["--entry", "--text=输入密保手机收到的短信验证码"]).then(data => {
-        client.submitSMSCode(data.trim());
-    })
+    console.log("需要登录设备验证")
+    client.terminate()
 }
 
 function on_system_login_qrcode(data) {
@@ -53,36 +32,15 @@ function on_system_login_error(data) {
     client.terminate()
 }
 
-let msgs = []
-
-function message_private_friend(data) {
-    msgs.push(data)
-}
-
 client.on("system.login.slider", on_system_login_slider)
 client.on("system.login.device", on_system_login_device)
 client.on("system.login.qrcode", on_system_login_qrcode)
 client.on("system.login.error", on_system_login_error)
-client.on("message.private.friend", message_private_friend)
 
 const {onlineListener} = require("oicq-icalingua-plus-plus/lib/oicq");
-const {getC2CMsgs} = require("oicq-icalingua-plus-plus/lib/message/history");
-const {parseC2CMsg} = require("oicq-icalingua-plus-plus/lib/message/parser");
-const {parseC2CMessageId} = require("oicq-icalingua-plus-plus/lib/common");
-const {Gender, Domain, Sig} = require("oicq-icalingua-plus-plus");
-
-
-async function get_c2c_messages(user_id, time = 1000000000000, count = 20) {
-    const msgs = await getC2CMsgs.call(client, user_id, time, count)
-    let result = []
-    for (let i = 0; i < msgs.length; i++) {
-        result.push(await parseC2CMsg.call(client, msgs[i]))
-    }
-    return result
-}
 
 function load_session() {
-    let session_data = JSON.parse(fs.readFileSync("session.json", "utf-8"))
+    let session_data = JSON.parse(fs.readFileSync(path.join(client.dir, "session.json"), "utf-8"))
     client.password_md5 = session_data.client.password_md5
     client.nickname = session_data.client.nickname
     client.sex = session_data.client.sex
@@ -123,6 +81,43 @@ client._connect(() => {
     onlineListener.call(client).then()
 });
 
-get_c2c_messages(396519827).then(
-    d => console.log(d)
-)
+const jce = require("oicq-icalingua-plus-plus/lib/algo/jce");
+
+async function set_online_status(
+    online_status,
+    battery_status = 0,
+    is_power_connected = false,
+) {
+    if (battery_status < 0 || battery_status > 100)
+        throw new Error("bad battery_status");
+    let basic_online_status = online_status
+    let ext_online_status = online_status
+    if (online_status < 1000)
+        ext_online_status = 0
+    else
+        basic_online_status = 11;
+    if (is_power_connected)
+        battery_status += 128
+
+    const timestamp = Math.floor(new Date().getTime() / 1000)
+    const SvcReqRegister = jce.encodeStruct([
+        this.uin, 7, 0, "", basic_online_status, 0, 0, 0, 0, 0,
+        timestamp, this.device.version.sdk, 1, "", 0, null, this.device.guid, 2052, 0, this.device.model,
+        this.device.model, this.device.version.release, 1, 0, 0, null, 0, 0, "", 0,
+        "", "", "", null, 1, null, 0, null, ext_online_status, battery_status,
+    ]);
+    const extra = {
+        req_id: this.seq_id + 1,
+        service: "PushService",
+        method: "SvcReqRegister",
+    };
+    const body = jce.encodeWrapper({SvcReqRegister}, extra);
+    const blob = await this.sendUni("StatSvc.SetStatusFromClient", body);
+    const rsp = jce.decode(blob);
+    let result = -1;
+    if (rsp[9]) {
+        result = 0;
+        this.online_status = online_status;
+    }
+    return {result, rsp};
+}

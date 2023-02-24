@@ -36,7 +36,7 @@ export class App {
 
     public session_only() {
         const client = oicq.createClient(this.config.oicq.account, {
-            platform: 4,
+            platform: 5,
             data_dir: this.config.oicq.data,
             ignore_self: false,
             brief: true,
@@ -59,10 +59,13 @@ export class App {
     // 该函数启动QQ机器人
     private run_qq_bot(io: BotIO): Bot {
         const client = oicq.createClient(this.config.oicq.account, {
-            platform: 4,
+            platform: 5,
             data_dir: this.config.oicq.data,
             ignore_self: false,
             brief: true,
+            resend: false,
+            reconn_interval: 0,
+            auto_server: false,
         })
         const database = new Database(this.config.app.database)
         log4js.configure({

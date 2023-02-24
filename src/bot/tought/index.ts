@@ -250,7 +250,6 @@ export class BotThought {
             const err_msg = `${action} 失败 ${content}： ` + err_to_text(err)
             this.logger.error(err_msg)
             this.send_to_master(err_msg)
-            throw err_msg
         })
     }
 }
