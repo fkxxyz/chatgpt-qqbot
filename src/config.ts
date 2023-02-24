@@ -1,5 +1,6 @@
 export interface Config {
     oicq: {
+        platform: number,
         data: string,
         account: number,
         password: string,

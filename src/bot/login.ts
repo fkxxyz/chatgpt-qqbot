@@ -34,7 +34,8 @@ export class BotLogin {
     private _io: BotIO;
 
     constructor(client: oicq.Client, io: BotIO) {
-        (client as any).apk = ipadApkInfo
+        if (client.config.platform == 5)
+            (client as any).apk = ipadApkInfo
         this.client = client
         this._io = io
         this.loaded_session = false

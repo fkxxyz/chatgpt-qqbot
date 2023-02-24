@@ -1,4 +1,5 @@
 import * as oicq from 'oicq-icalingua-plus-plus';
+import {ConfBot} from 'oicq-icalingua-plus-plus';
 import * as log4js from "log4js"
 import {Config} from "./config";
 import {Bot} from "./bot"
@@ -13,9 +14,19 @@ import {BotThought} from "./bot/tought";
 
 export class App {
     private config: Config;
+    private readonly _oicq_config: ConfBot
 
     constructor(config: Config) {
         this.config = config
+        this._oicq_config = {
+            platform: config.oicq.platform,
+            data_dir: config.oicq.data,
+            ignore_self: false,
+            brief: true,
+            resend: false,
+            reconn_interval: 0,
+            auto_server: false,
+        }
     }
 
     public main() {
@@ -35,12 +46,7 @@ export class App {
     }
 
     public session_only() {
-        const client = oicq.createClient(this.config.oicq.account, {
-            platform: 5,
-            data_dir: this.config.oicq.data,
-            ignore_self: false,
-            brief: true,
-        })
+        const client = oicq.createClient(this.config.oicq.account, this._oicq_config)
         const bot_login = new BotLogin(client, null)
         bot_login.login(this.config.oicq.password, true)
     }
@@ -58,15 +64,7 @@ export class App {
 
     // 该函数启动QQ机器人
     private run_qq_bot(io: BotIO): Bot {
-        const client = oicq.createClient(this.config.oicq.account, {
-            platform: 5,
-            data_dir: this.config.oicq.data,
-            ignore_self: false,
-            brief: true,
-            resend: false,
-            reconn_interval: 0,
-            auto_server: false,
-        })
+        const client = oicq.createClient(this.config.oicq.account, this._oicq_config)
         const database = new Database(this.config.app.database)
         log4js.configure({
             appenders: {
