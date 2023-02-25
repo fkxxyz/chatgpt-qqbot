@@ -26,8 +26,7 @@ class Queue<T> {
 
 interface Request {
     id: number,
-
-    process(): Promise<any>,
+    process: () => Promise<any>,
 }
 
 export class RequestQueue {

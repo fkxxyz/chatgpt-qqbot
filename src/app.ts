@@ -53,12 +53,13 @@ export class App {
 
     // 该函数启动 chatgpt 服务
     private run_chatgpt(io: BotIO): Chatgpt {
-        const chatgpt = new Chatgpt(this.config.app.chatgpt)
+        const chatgpt = new Chatgpt(this.config.app.chatgpt.url)
+        const account = chatgpt.account(this.config.app.chatgpt.accounts[0])
         io.o.chatgpt.get = chatgpt.get_message.bind(chatgpt)
-        io.o.chatgpt.send = chatgpt.send_message.bind(chatgpt)
-        io.o.chatgpt.new_conv = chatgpt.new_conversation.bind(chatgpt)
-        io.o.chatgpt.title = chatgpt.set_title.bind(chatgpt)
-        io.o.chatgpt.is_blocking = chatgpt.is_blocking.bind(chatgpt)
+        io.o.chatgpt.send = account.send_message.bind(chatgpt)
+        io.o.chatgpt.new_conv = account.new_conversation.bind(chatgpt)
+        io.o.chatgpt.title = account.set_title.bind(chatgpt)
+        io.o.chatgpt.is_blocking = account.is_blocking.bind(chatgpt)
         return chatgpt
     }
 

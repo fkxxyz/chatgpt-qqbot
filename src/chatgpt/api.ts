@@ -12,34 +12,19 @@ export class Api {
         });
     }
 
-    conversations(limit: number = 20, offset: number = 0) {
-        return this.api.get("/conversations", {
-            params: {
-                limit: limit,
-                offset: offset,
-            },
-        });
-    }
-
-    set_title(id: string, title: string) {
+    set_title(account: string, id: string, title: string) {
         return this.api.patch("/title", Buffer.from(title, "utf-8"), {
             params: {
+                account: account,
                 id: id,
             },
         })
     }
 
-    history(id: string) {
-        return this.api.get("history", {
-            params: {
-                id: id,
-            },
-        })
-    }
-
-    send(msg: string, id: string = "", mid: string = "") {
+    send(account: string, msg: string, id: string = "", mid: string = "") {
         return this.api.post("send", msg, {
             params: {
+                account: account,
                 id: id,
                 mid: mid,
             },

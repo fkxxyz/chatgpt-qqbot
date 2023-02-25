@@ -15,7 +15,10 @@ export interface Config {
             host: string,
             port: number,
         }
-        chatgpt: string,
+        chatgpt: {
+            url: string,
+            accounts: Array<string>,
+        },
         database: string,
     },
 }
