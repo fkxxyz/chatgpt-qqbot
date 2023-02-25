@@ -13,12 +13,16 @@ interface MessageIdInfo {
     flag: number,
 }
 
-function IdLessThen(id1: MessageIdInfo, id2: MessageIdInfo): boolean {
+function IdLessThan(id1: MessageIdInfo, id2: MessageIdInfo): boolean {
     return id1.time == id2.time ? id1.seq < id2.seq : id1.time < id2.time
 }
 
-function IdLessEqualThen(id1: MessageIdInfo, id2: MessageIdInfo): boolean {
+function IdLessEqualThan(id1: MessageIdInfo, id2: MessageIdInfo): boolean {
     return id1.time == id2.time ? id1.seq <= id2.seq : id1.time <= id2.time
+}
+
+function IdEqual(id1: MessageIdInfo, id2: MessageIdInfo): boolean {
+    return id1.time == id2.time && id1.seq == id2.seq
 }
 
 function IdSub(id1: MessageIdInfo, id2: MessageIdInfo): number {
@@ -113,12 +117,12 @@ export class BotMessage {
         const target_msg_info = parseC2CMessageIdInfo(message_id)
 
         // 优先从内存里找未读消息
+        const unread_messages = this.unread_messages[user_id]
         if (user_id in this.unread_messages) {
-            const unread_messages = this.unread_messages[user_id]
             unread_messages.sort((m1, m2) =>
                 IdSub(m1.id_info, m2.id_info) // 按序号排序
             )
-            if (unread_messages.length > 0 && IdLessThen(unread_messages[0].id_info, target_msg_info)) { // 确保内存中的记录能完全覆盖到
+            if (unread_messages.length > 0 && IdLessThan(unread_messages[0].id_info, target_msg_info)) { // 确保内存中的记录能完全覆盖到
                 for (let i = 0; i < unread_messages.length; i++) {
                     const msg = unread_messages[i]
                     if (msg.message_id == message_id) {
@@ -167,6 +171,8 @@ export class BotMessage {
         }
 
         // 排序
+        if (unread_messages)
+            history_.push(...unread_messages)
         for (let i = 0; i < history_.length; i++) {
             history_[i].id_info = parseC2CMessageIdInfo(history_[i].message_id)
         }
@@ -174,14 +180,23 @@ export class BotMessage {
             IdSub(m1.id_info, m2.id_info) // 按序号排序
         )
 
-        // 去掉无效的
+        // 去掉无效的和重复的
         let result: Array<oicq.PrivateMessageEventData> = []
         for (let i = 0; i < history_.length; i++) {
             const msg = history_[i]
-            if (IdLessEqualThen(msg.id_info, target_msg_info))
+
+            // 时间戳太早则去掉
+            if (IdLessEqualThan(msg.id_info, target_msg_info))
                 continue
+
+            // 不是对方回复的则去掉
             if (msg.user_id != user_id)
                 continue
+
+            // 重复的则去掉
+            if (i > 0 && IdEqual(msg.id_info, history_[i - 1].id_info))
+                continue
+
             result.push(msg)
         }
         return result

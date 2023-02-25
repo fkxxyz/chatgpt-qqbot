@@ -151,7 +151,7 @@ export class BotThought {
             this.request_queue.append({
                 id: user_id,
                 process: async () => {
-                    return this.reply_friend_message(user_id, msg)
+                    return this.reply_friend_message(user_id)
                 }
             })
         }
@@ -182,7 +182,7 @@ export class BotThought {
             }))
     }
 
-    private async reply_friend_message(user_id: number, msg?: MessageInfo) {
+    private async reply_friend_message(user_id: number) {
         const friend = this._io.o.qq.get_friend(user_id)
         this.logger.info("检查好友消息 " + friend_text(friend))
         const friend_index = this.data.load_friend_index(user_id)
@@ -194,10 +194,6 @@ export class BotThought {
 
         // 获取所有未读消息
         const history = await this._io.o.qq.get_history(user_id, fmil.message_id)
-
-        // 刚发的消息，在历史里面可能没有
-        if (msg && (history.length == 0 || history[history.length - 1].id != msg.id))
-            history.push(msg)
         if (history.length == 0)
             return
         this.logger.info(`好友有未读消息 ${history.length} 条 ` + friend_text(friend))
