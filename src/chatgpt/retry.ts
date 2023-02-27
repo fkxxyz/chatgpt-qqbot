@@ -71,6 +71,7 @@ export class TryRequestQueue {
                     let sleep_strategy: SleepStrategy
                     if (err.response) {
                         this.logger.error("ChatGPT 服务器返回状态码 ", err.message)
+                        this.logger.error("ChatGPT 服务器返回响应 ", err.response.data)
                         sleep_strategy = status_sleep_map[err.response.status]
                         if (!sleep_strategy)
                             sleep_strategy = default_sleep_strategy
