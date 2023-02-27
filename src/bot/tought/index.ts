@@ -108,7 +108,13 @@ export class BotThought {
                     // 发送引导语给 ChatGPT 得到欢迎语
                     const self_info = this._io.o.qq.get_self()
                     const msg = new_friend_chatgpt_guide(self_info, friend)
-                    const mid = await this._io.o.chatgpt.new_conv(msg)
+                    let mid: string
+                    try {
+                        mid = await this._io.o.chatgpt.new_conv(msg)
+                    } catch (err) {
+                        this.send_to_master(`发送 ${friend_text(friend)} 的欢迎语请求给 ChatGPT 出错： ` + err)
+                        return
+                    }
                     let msg_info: ReplyMsgInfo
                     while (true) {
                         msg_info = await this._io.o.chatgpt.get(mid)
@@ -204,7 +210,13 @@ export class BotThought {
 
         // 一次性发送给 ChatGPT 得到回复
         this.logger.info("请求 ChatGPT 生成回复 " + friend_text(friend))
-        const mid = await this._io.o.chatgpt.send(chatgpt_msg, friend_index.id, fmil.mid)
+        let mid: string
+        try {
+            mid = await this._io.o.chatgpt.send(chatgpt_msg, friend_index.id, fmil.mid)
+        } catch (err) {
+            this.send_to_master(`发送 ${friend_text(friend)} 的消息给 ChatGPT 出错： ` + err)
+            return
+        }
         let msg_info: ReplyMsgInfo
         while (true) {
             msg_info = await this._io.o.chatgpt.get(mid)
