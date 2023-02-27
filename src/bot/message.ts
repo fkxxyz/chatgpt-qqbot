@@ -158,7 +158,7 @@ export class BotMessage {
                 break
         if (i >= 0) {
             history_.push(...history[i])
-            let time_remove = history[i][history[0].length - 1].time
+            let time_remove = history[i][history[i].length - 1].time
             i--
             for (; i >= 0; i--) {
                 let j
