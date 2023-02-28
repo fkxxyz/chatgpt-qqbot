@@ -71,6 +71,7 @@ export interface BotAction {
         new_conv: (msg: string) => Promise<string>
         get: (mid: string) => Promise<ReplyMsgInfo>
         is_blocking: () => boolean
+        blocking_err: () => any
     }
 }
 

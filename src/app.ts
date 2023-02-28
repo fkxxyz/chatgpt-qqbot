@@ -61,6 +61,7 @@ export class App {
         io.o.chatgpt.title = account.set_title.bind(account)
         io.o.chatgpt.history = account.history.bind(account)
         io.o.chatgpt.is_blocking = account.is_blocking.bind(account)
+        io.o.chatgpt.blocking_err = account.blocking_error.bind(account)
         return chatgpt
     }
 

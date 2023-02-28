@@ -42,15 +42,21 @@ export class TryRequestQueue {
     private queue: ProcessQueue;
     private logger: log4js.Logger;
     private blocking: boolean;
+    private blocking_err: any;
 
     constructor(logger: log4js.Logger) {
         this.queue = new ProcessQueue()
         this.logger = logger
         this.blocking = false
+        this.blocking_err = null;
     }
 
     public is_blocking(): boolean {
         return this.blocking
+    }
+
+    public blocking_error(): any {
+        return this.blocking_err
     }
 
     protected async try_request(request: () => Promise<AxiosResponse<any, any>>): Promise<any> {
@@ -87,6 +93,9 @@ export class TryRequestQueue {
                         wait_ms *= sleep_strategy.growth
                     if (wait_ms > sleep_strategy.upper)
                         wait_ms = sleep_strategy.upper
+
+                    // 记录错误信息
+                    this.blocking_err = err.message + ": " + err.response.data
                 }
                 this.blocking = true
                 this.logger.error(`等待 ${wait_ms} 毫秒后重试 ...`)
