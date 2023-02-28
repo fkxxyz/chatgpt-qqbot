@@ -35,4 +35,9 @@ export class Account extends TryRequestQueue {
     public async set_title(id: string, title: string): Promise<any> {
         return this.try_request(() => this.api.set_title(this.id, id, title))
     }
+
+    // 获取历史记录
+    public async history(id: string): Promise<any> {
+        return this.try_request(() => this.api.history(this.id, id))
+    }
 }

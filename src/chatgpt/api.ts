@@ -21,8 +21,17 @@ export class Api {
         })
     }
 
+    history(account: string, id: string) {
+        return this.api.get("history", {
+            params: {
+                account: account,
+                id: id,
+            }
+        })
+    }
+
     send(account: string, msg: string, id: string = "", mid: string = "") {
-        return this.api.post("send", msg, {
+        return this.api.post("/send", msg, {
             params: {
                 account: account,
                 id: id,
@@ -32,7 +41,7 @@ export class Api {
     }
 
     get(mid: string) {
-        return this.api.get("get", {
+        return this.api.get("/get", {
             params: {
                 mid: mid,
             }

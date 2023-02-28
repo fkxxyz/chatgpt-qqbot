@@ -56,10 +56,11 @@ export class App {
         const chatgpt = new Chatgpt(this.config.app.chatgpt.url)
         const account = chatgpt.account(this.config.app.chatgpt.accounts[0])
         io.o.chatgpt.get = chatgpt.get_message.bind(chatgpt)
-        io.o.chatgpt.send = account.send_message.bind(chatgpt)
-        io.o.chatgpt.new_conv = account.new_conversation.bind(chatgpt)
-        io.o.chatgpt.title = account.set_title.bind(chatgpt)
-        io.o.chatgpt.is_blocking = account.is_blocking.bind(chatgpt)
+        io.o.chatgpt.send = account.send_message.bind(account)
+        io.o.chatgpt.new_conv = account.new_conversation.bind(account)
+        io.o.chatgpt.title = account.set_title.bind(account)
+        io.o.chatgpt.history = account.history.bind(account)
+        io.o.chatgpt.is_blocking = account.is_blocking.bind(account)
         return chatgpt
     }
 

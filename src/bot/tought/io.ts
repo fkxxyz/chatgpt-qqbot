@@ -34,6 +34,24 @@ export enum OnlineStatus {
     leave,
 }
 
+export interface ChatgptHistory {
+    current_node: string
+    mapping: {
+        [id: string]: {
+            id: string
+            parent: string
+            message: {
+                author: {
+                    role: string
+                }
+                content: {
+                    parts: Array<string>
+                }
+            }
+        }
+    }
+}
+
 export interface BotAction {
     qq: {
         set_online_status: (status: OnlineStatus) => Promise<any>;
@@ -49,6 +67,7 @@ export interface BotAction {
     chatgpt: {
         title: (id: string, title: string) => Promise<any>
         send: (msg: string, id: string, mid: string) => Promise<string>
+        history: (id: string) => Promise<ChatgptHistory>
         new_conv: (msg: string) => Promise<string>
         get: (mid: string) => Promise<ReplyMsgInfo>
         is_blocking: () => boolean

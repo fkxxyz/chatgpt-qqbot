@@ -188,6 +188,18 @@ export class BotThought {
             }))
     }
 
+    private async get_last_chatgpt_mid(id: string): Promise<string> {
+        const conv = await this._io.o.chatgpt.history(id)
+        const current = conv.mapping[conv.current_node]
+        if (current === undefined) {
+            return ""
+        }
+        if (current.message.author.role == "user")
+            return current.parent
+        else
+            return current.id
+    }
+
     private async reply_friend_message(user_id: number) {
         const friend = this._io.o.qq.get_friend(user_id)
         this.logger.info("检查好友消息 " + friend_text(friend))
@@ -214,6 +226,17 @@ export class BotThought {
         try {
             mid = await this._io.o.chatgpt.send(chatgpt_msg, friend_index.id, fmil.mid)
         } catch (err) {
+            if (err.response !== undefined) {
+                if (err.response.status == 406) {
+                    this.logger.info("请求出错406，重新加载会话 " + friend_text(friend))
+                    const fix_mid = await this.get_last_chatgpt_mid(friend_index.id)
+                    this.data.save_friend_message_index_loaded(user_id, {
+                        message_id: fmil.message_id,
+                        mid: fix_mid,
+                    })
+                    throw "reset conversation"
+                }
+            }
             this.send_to_master(`发送 ${friend_text(friend)} 的消息给 ChatGPT 出错： ` + err)
             return
         }
