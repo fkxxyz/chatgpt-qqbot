@@ -8,7 +8,7 @@ export class Api {
     constructor(url: string) {
         this.api = axios.create({
             baseURL: url + "/api",
-            timeout: 30000,
+            timeout: 600000,
         });
     }
 
