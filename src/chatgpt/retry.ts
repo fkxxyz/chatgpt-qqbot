@@ -95,7 +95,10 @@ export class TryRequestQueue {
                         wait_ms = sleep_strategy.upper
 
                     // 记录错误信息
-                    this.blocking_err = err.message + ": " + err.response.data
+                    if (err.response)
+                        this.blocking_err = err.message + ": " + err.response.data
+                    else
+                        this.blocking_err = err.message
                 }
                 this.blocking = true
                 this.logger.error(`等待 ${wait_ms} 毫秒后重试 ...`)
