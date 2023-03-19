@@ -30,6 +30,11 @@ const status_sleep_map: { [key: number]: SleepStrategy } = {
         growth: 1,
         upper: 10000,
     },
+    524: {
+        start: 10000,
+        growth: 2,
+        upper: 60000,
+    },
 }
 
 const default_sleep_strategy: SleepStrategy = {
